@@ -23,7 +23,7 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 setTimeout(() => {
     try {
         const { WebcastPushConnection } = require('tiktok-live-connector');
-        const TIKTOK_USERNAME = 'spawnistic_';
+        const TIKTOK_USERNAME = 'spawnistic';
         const tiktok = new WebcastPushConnection(TIKTOK_USERNAME);
 
         function connectTikTok() {
