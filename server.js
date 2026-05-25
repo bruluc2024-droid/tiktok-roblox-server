@@ -1,3 +1,7 @@
+process.on('uncaughtException', err => {
+    console.log('Caught error: ' + err.message);
+});
+
 const { WebcastPushConnection } = require('tiktok-live-connector');
 const express = require('express');
 const app = express();
