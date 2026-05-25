@@ -19,7 +19,6 @@ app.get('/', (req, res) => res.send('TikTok Roblox Server running!'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
-// Load TikTok AFTER server is running
 setTimeout(() => {
     try {
         const { WebcastPushConnection } = require('tiktok-live-connector');
@@ -27,10 +26,11 @@ setTimeout(() => {
         const tiktok = new WebcastPushConnection(TIKTOK_USERNAME);
 
         function connectTikTok() {
+            console.log('Attempting to connect to TikTok LIVE...');
             tiktok.connect()
                 .then(() => console.log('Connected to TikTok LIVE!'))
                 .catch(err => {
-                    console.log('Not live yet, retrying in 30 seconds...');
+                    console.log('Failed to connect. Error: ' + err.message + ' | Retrying in 30 seconds...');
                     setTimeout(connectTikTok, 30000);
                 });
         }
@@ -39,15 +39,18 @@ setTimeout(() => {
 
         tiktok.on('chat', data => {
             const msg = data.comment.trim();
+            console.log(`Comment: ${data.uniqueId}: ${msg}`);
             commentHistory[data.uniqueId] = msg;
             eventQueue.push({ type: 'comment', username: data.uniqueId, message: msg });
         });
 
         tiktok.on('follow', data => {
+            console.log(`Follow: ${data.uniqueId}`);
             eventQueue.push({ type: 'follow', username: data.uniqueId });
         });
 
         tiktok.on('like', data => {
+            console.log(`Like: ${data.uniqueId} x${data.likeCount}`);
             eventQueue.push({ type: 'like', username: data.uniqueId, count: data.likeCount });
         });
 
