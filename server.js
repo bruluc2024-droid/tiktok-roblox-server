@@ -21,42 +21,45 @@ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 setTimeout(() => {
     try {
-        const { WebcastPushConnection } = require('tiktok-live-connector');
+        const { TikTokLiveConnection, WebcastEvent } = require('tiktok-live-connector');
         const TIKTOK_USERNAME = 'spawnistic';
-        const tiktok = new WebcastPushConnection(TIKTOK_USERNAME);
+        const tiktok = new TikTokLiveConnection(TIKTOK_USERNAME);
 
         function connectTikTok() {
             console.log('Attempting to connect to TikTok LIVE...');
             tiktok.connect()
                 .then(() => console.log('Connected to TikTok LIVE!'))
                 .catch(err => {
-                    console.log('Failed to connect. Error: ' + err.message + ' | Retrying in 30 seconds...');
+                    console.log('Failed: ' + err.message + ' | Retrying in 30s...');
                     setTimeout(connectTikTok, 30000);
                 });
         }
 
         connectTikTok();
 
-        tiktok.on('chat', data => {
+        tiktok.on(WebcastEvent.CHAT, data => {
             const msg = data.comment.trim();
-            console.log(`Comment: ${data.uniqueId}: ${msg}`);
-            commentHistory[data.uniqueId] = msg;
-            eventQueue.push({ type: 'comment', username: data.uniqueId, message: msg });
+            const tiktokUser = data.user.uniqueId;
+            console.log(`Comment: ${tiktokUser}: ${msg}`);
+            commentHistory[tiktokUser] = msg;
+            eventQueue.push({ type: 'comment', username: tiktokUser, message: msg });
         });
 
-        tiktok.on('follow', data => {
-            console.log(`Follow: ${data.uniqueId}`);
-            eventQueue.push({ type: 'follow', username: data.uniqueId });
+        tiktok.on(WebcastEvent.FOLLOW, data => {
+            const tiktokUser = data.user.uniqueId;
+            console.log(`Follow: ${tiktokUser}`);
+            eventQueue.push({ type: 'follow', username: tiktokUser });
         });
 
-        tiktok.on('like', data => {
-            console.log(`Like: ${data.uniqueId} x${data.likeCount}`);
-            eventQueue.push({ type: 'like', username: data.uniqueId, count: data.likeCount });
+        tiktok.on(WebcastEvent.LIKE, data => {
+            const tiktokUser = data.user.uniqueId;
+            console.log(`Like: ${tiktokUser}`);
+            eventQueue.push({ type: 'like', username: tiktokUser, count: data.likeCount });
         });
 
-        tiktok.on('gift', data => {
+        tiktok.on(WebcastEvent.GIFT, data => {
             const gift = data.giftName.toLowerCase().trim();
-            const tiktokUser = data.uniqueId;
+            const tiktokUser = data.user.uniqueId;
             const robloxUsername = commentHistory[tiktokUser] || null;
             console.log(`Gift: "${gift}" from ${tiktokUser}`);
 
